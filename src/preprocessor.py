@@ -1,7 +1,6 @@
 import re
+from src.utils import normalize
 
-def normalize(word):
-    return word.lower().replace("ё", "е")
 
 def preprocess(text):
     sentences = text.strip().split('\n')

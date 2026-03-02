@@ -1,6 +1,7 @@
 import pickle
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from src.utils import normalize
 
 POS_MAP = {
     "NOUN": "S",
@@ -16,6 +17,7 @@ POS_MAP = {
     "NUMR": "NI",
     "PRCL": "ADV"
 }
+
 
 def load_opencorpora_dictionary(xml_path):
     tree = ET.parse(xml_path)
@@ -47,12 +49,7 @@ def load_opencorpora_dictionary(xml_path):
 
     return dictionary
 
+
 def save_dictionary(dictionary, output_path):
     with open(output_path, "wb") as f:
         pickle.dump(dictionary, f)
-
-def load_dictionary(pkl_path):
-    with open(pkl_path, "rb") as f:
-        return pickle.load(f)
-
-from src.preprocessor import normalize

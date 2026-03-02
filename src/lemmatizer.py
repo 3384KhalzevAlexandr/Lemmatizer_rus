@@ -1,23 +1,8 @@
-from collections import defaultdict
-from src.preprocessor import normalize
+from src.utils import normalize, find_closest_word
+from src.preprocessor import preprocess
 
-SPECIAL_POS = {
-    "пока": "CONJ",
-    "его": "NI",
-    "ее": "NI",
-    "её": "NI",
-    "он": "NI",
-    "она": "NI",
-    "они": "NI",
-    "их": "NI",
-    "и": "CONJ",
-    "а": "CONJ",
-    "но": "CONJ"
-}
 
 def guess_pos(token_norm):
-    if token_norm in SPECIAL_POS:
-        return token_norm, SPECIAL_POS[token_norm]
 
     if token_norm in {"в", "на", "с", "к", "по", "за", "из", "о", "об", "у"}:
         return token_norm, "PR"
@@ -36,11 +21,9 @@ def guess_pos(token_norm):
 
     return token_norm, "S"
 
+
 def lemmatize_token(token, dictionary, freq_model=None):
     token_norm = token["normalized"]
-
-    if token_norm in SPECIAL_POS:
-        return token_norm, SPECIAL_POS[token_norm]
 
     if token_norm in dictionary:
         analyses = dictionary[token_norm]
@@ -55,8 +38,16 @@ def lemmatize_token(token, dictionary, freq_model=None):
 
         lemma, pos = analyses[0]
         return normalize(lemma), pos
-    
+
+    closest = find_closest_word(token_norm, dictionary)
+
+    if closest:
+        analyses = dictionary[closest]
+        lemma, pos = analyses[0]
+        return normalize(lemma), pos
+
     return guess_pos(token_norm)
+
 
 def lemmatize_sentence(sentence_tokens, dictionary, freq_model=None):
     result = []
@@ -65,14 +56,15 @@ def lemmatize_sentence(sentence_tokens, dictionary, freq_model=None):
         result.append((token["original"], lemma, pos))
     return result
 
+
 def format_output(lemmatized_sentence):
     return " ".join(
         f"{original}{{{lemma}={pos}}}"
         for original, lemma, pos in lemmatized_sentence
     )
 
+
 def analyze(sentence, dictionary, freq_model=None):
-    from src.preprocessor import preprocess
     tokens = preprocess(sentence)[0]
     lemmatized = lemmatize_sentence(tokens, dictionary, freq_model)
     return format_output(lemmatized)
